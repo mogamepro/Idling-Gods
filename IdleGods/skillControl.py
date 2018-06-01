@@ -73,11 +73,6 @@ def orderSkills(skills):
         coolDowns.append(skills[key].coolDown)
         skillNames.append(key)
 
-    if len(sys.argv) <= 1:
-        answer = getInput("Do you wish to update the number of uses per skill?  y/n \n")
-        if answer == 'y':
-            skills = setUses(skills)
-
     order = []
     notPriority = []
     while len(coolDowns) > 0:
@@ -195,7 +190,12 @@ def detectEndFight(skills, fightButtonCoords, nextSkill):
 def useSkills(fightWhat):
     skills = determineAvailSkills(loadSkills())
     fightButtonCoords = {'Clones': (991, 406), 'Jacky Lee': (1245, 400), 'Cthulhu': (1655, 405), 'Doppelganger': (845, 475), 'D. Evelope': (1245, 470), 'gods': (1640, 470)}
-
+    
+    if len(sys.argv) <= 1:
+        answer = getInput("Do you wish to update the number of uses per skill?  y/n \n")
+        if answer == 'y':
+            skills = setUses(skills)
+    
     while True:
         focus = getInput("Focus defeating 1) enemy or 2) using non-one cloned skills\n")
         if focus != '1' and focus != '2':
@@ -226,6 +226,11 @@ def useSkills(fightWhat):
     while True:
         if detectKeypress():
             break
+        if py.pixelMatchesColor(1151, 405, (4, 4, 4), tolerance=10):
+            skills[key].uses -= 1
+            if min(coolDowns) >= time.time():
+                sleep(min(coolDowns) - time.time() + 0.5)
+            skills, nextSkill = detectEndFight(skills, fightButtonCoords[fightWhat], nextSkill)
         for x in range(len(skillsToUse)):
             key = skillsToUse[x]
             if key in skills and skills[key].useMove():
@@ -242,11 +247,6 @@ def useSkills(fightWhat):
                     print("Key:", key, "not in skills")
                 elif skills[key].nextUse < time.time() and skills[key].avail:
                     print("Skill:", key, "off cooldown but not able to be used")
-        if py.pixelMatchesColor(1151, 405, (4, 4, 4), tolerance=10):
-            skills[key].uses -= 1
-            if min(coolDowns) >= time.time():
-                sleep(min(coolDowns) - time.time() + 0.5)
-            skills, nextSkill = detectEndFight(skills, fightButtonCoords[fightWhat], nextSkill)
     saveSkills(skills)
     atexit.unregister(saveSkills)
     return ''
