@@ -1,0 +1,58 @@
+#:kivy 1.10.0
+#:import sys sys
+
+<ChoiceButton@Button>:
+	halign: "center"
+	size_hint: 0.25, 0.5
+	on_release: root.parent.manager.current = self.text
+	
+<PetButton@ChoiceButton>:
+	size_hint: 0.34, 1
+
+<MyManager>:
+	Choices:
+	Pets:
+
+<Choices>:
+	name: "Choices"
+	ChoiceButton:
+		text: "Auto Afky"
+		pos_hint: {'x': 0, 'y': 0.50}
+	ChoiceButton:
+		text: "Use Skills"
+		pos_hint: {'x': 0.25, 'y': 0.5}
+	ChoiceButton:
+		text: "Calculate\nCreations"
+		pos_hint: {'x': 0.50, 'y': 0.5}
+	ChoiceButton:
+		text: "Pets"
+		pos_hint: {'x': 0.75, 'y': 0.5}
+	ChoiceButton:
+		text: "Divinity\nGenerator"
+		pos_hint: {'x': 0, 'y': 0}
+	ChoiceButton:
+		text: "Monuments"
+		pos_hint: {'x': 0.25, 'y': 0}
+	ChoiceButton:
+		text: "Skill Training"
+		pos_hint: {'x': 0.5, 'y': 0}
+	ChoiceButton:
+		text: "Quit"
+		pos_hint: {'x': 0.75, 'y': 0}
+		on_release: sys.exit()
+
+<Creations>:
+	
+<Pets>:
+	name: "Pets"
+	PetButton:
+		text: "Clone Stats"
+		pos_hint: {'x': 0, 'y': 0}
+		on_release: print(root.width)
+	PetButton:
+		text: "Pet Hunger"
+		pos_hint: {'x': 0.33, 'y': 0}
+	PetButton:
+		text: "Quit"
+		pos_hint: {'x': 0.66, 'y': 0}
+		on_release: sys.exit()
