@@ -1,7 +1,9 @@
 import os
+import zmq
 import datetime
 import sys
 import win32gui
+import win32con
 import ctypes
 import skillControl
 import pets
@@ -13,14 +15,12 @@ import logging
 import time
 import pyautogui as py
 from time import sleep
-    
+
 def launchAfky(*args):
     positionWindows(True, 0, 0, 770, 332, True, False, True)
     return afky.runAfky()
 
 def launchUseSkills(*args):
-    #skillControl.theBaalSlayer()
-    #input('blah')
     try:
         forWin = win32gui.GetForegroundWindow()
         utils.positionWindows(False, 0, 0, 770, 332, True, False, True)
@@ -50,8 +50,12 @@ def launchCalcCreations(*args):
 
 def launchCalcPets(*args):
     utils.positionWindows(False, 0, 0, 0, 0, True, False, True)
-    pets.petHunger()
-    #return pets.petClone()
+    while True:
+        choice = utils.getInput("1) Pet Hunger  2) Pet Clone Stats")
+        if choice == '1':
+            return pets.petHunger()
+        elif choice == '2':
+            return pets.petClone()
 
 def launchCalcDivGen(*args):
     buildings.divUpgrade()
@@ -90,35 +94,19 @@ def askChoice(*args):
             choice = ''
     return
 
-def troubleshoot():
-    ctypes.windll.kernel32.SetConsoleTitleW("py screenshot and pixel match")
-    fileName = 'Error Logs\\Troubleshooting Log - ' + datetime.datetime.strftime(datetime.datetime.now(), '%I_%M_%S_%p') + '.log'
-    logging.basicConfig(filename=fileName, level=logging.DEBUG, filemode='w')
-    logging.debug("py screenshot and pixel match")
-    x = 0
-    start = time.time()
-    while True:
-        try:
-            py.pixelMatchesColor(991, 406, (3, 3, 3), tolerance=10)
-            py.screenshot()
-            #utils.takeAndReadImage(660, 379, 1020, 429)
-            x += 1
-            print(x, utils.formatTime(int(time.time() - start)),  end='\r')
-        except BaseException as e:
-            logging.getLogger(__name__).exception("Program terminated")
-            logging.debug("Ran for: " + utils.formatTime(int(time.time() - start)))
-            input("Errored %s" % e)
-
 if __name__ == "__main__":
-    #troubleshoot()
-    #input("Blah")
-    fileName = 'Error Logs\\Error Log - ' + datetime.datetime.strftime(datetime.datetime.now(), '%I_%M_%S_%p') + '.log'
+    fileName = 'Error Logs/Error Log - ' + datetime.datetime.strftime(datetime.datetime.now(), '%I_%M_%S_%p') + '.log'
     logging.basicConfig(filename=fileName, level=logging.DEBUG, filemode='w')
     try:
         if False:
             import gui
             gui.MainWindow().run()
         else:
+            context = zmq.Context()
+            socket = context.socket(zmq.REP)
+            socket.bind("tcp://*:5555")
+            poller = zmq.Poller()
+            poller.register(socket, zmq.POLLIN)
             start = time.time()
             ctypes.windll.kernel32.SetConsoleTitleW("Idle Gods Controller X")
             args = [''] * len(sys.argv)

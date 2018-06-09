@@ -157,6 +157,14 @@ def loadSkills():
     return skills
 
 def detectEndFight(skills, fightButtonCoords, nextSkill):
+    evts = poller.poll(1)
+    if len(evts) > 0 :
+        msg = socket.recv_string()
+        if msg.lower == "stop":
+            while msg.lower != "run":
+                sleep(5)
+                msg = socket.recv_string()
+
     movey(900, 75)
     # Finish Button
     text = takeAndReadImage(1044, 393, 1117, 417)
@@ -188,6 +196,7 @@ def detectEndFight(skills, fightButtonCoords, nextSkill):
     return skills, nextSkill
 
 def useSkills(fightWhat):
+    idleGodshwdn = findWindowHandle("Idling to Rule The Gods")
     skills = determineAvailSkills(loadSkills())
     fightButtonCoords = {'Clones': (991, 406), 'Jacky Lee': (1245, 400), 'Cthulhu': (1655, 405), 'Doppelganger': (845, 475), 'D. Evelope': (1245, 470), 'gods': (1640, 470)}
     
@@ -231,6 +240,8 @@ def useSkills(fightWhat):
             if min(coolDowns) >= time.time():
                 sleep(min(coolDowns) - time.time() + 0.5)
             skills, nextSkill = detectEndFight(skills, fightButtonCoords[fightWhat], nextSkill)
+        if win32gui.GetForegroundWindow() != idleGodshwdn:
+            win32gui.SetForegroundWindow(idleGodshwdn)
         for x in range(len(skillsToUse)):
             key = skillsToUse[x]
             if key in skills and skills[key].useMove():
