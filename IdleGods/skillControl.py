@@ -4,6 +4,7 @@ import sys
 import time
 import atexit
 import re
+import zmq
 from time import sleep
 from utils import clicky
 from utils import movey
@@ -52,16 +53,20 @@ def setUses(skills):
             x, y = skill.coords
             try:
                 movey(x, y)
-                uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
-                uses = re.sub(r"[ ]", "", uses)
+                uses = takeAndReadImage(x - 382, y - 36, x - 290, y - 16)
+                uses = re.sub(r"[ ‘.]", "", uses)
                 if uses != '':
                     skills[key].uses = int(uses)
             except ValueError:
-                movey(x, y)
-                uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
-                uses = re.sub(r"[ ]", "", uses)
-                if uses != '':
-                    skills[key].uses = int(uses)
+                try:
+                    movey(x, y)
+                    uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
+                    uses = re.sub(r"[ ]", "", uses)
+                    if uses != '':
+                        skills[key].uses = int(uses)
+                except ValueError:
+                    logging.debug(uses)
+                    raise
     clicky(660, 550)
     saveSkills(skills)
     return skills
@@ -72,11 +77,6 @@ def orderSkills(skills):
     for key in skills:
         coolDowns.append(skills[key].coolDown)
         skillNames.append(key)
-
-    if len(sys.argv) <= 1:
-        answer = getInput("Do you wish to update the number of uses per skill?  y/n \n")
-        if answer == 'y':
-            skills = setUses(skills)
 
     order = []
     notPriority = []
@@ -162,6 +162,14 @@ def loadSkills():
     return skills
 
 def detectEndFight(skills, fightButtonCoords, nextSkill):
+    evts = poller.poll(1)
+    if len(evts) > 0 :
+        msg = socket.recv_string()
+        if msg.lower == "stop":
+            while msg.lower != "run":
+                sleep(5)
+                msg = socket.recv_string()
+
     movey(900, 75)
     # Finish Button
     text = takeAndReadImage(1044, 393, 1117, 417)
@@ -193,9 +201,15 @@ def detectEndFight(skills, fightButtonCoords, nextSkill):
     return skills, nextSkill
 
 def useSkills(fightWhat):
+    idleGodshwdn = findWindowHandle("Idling to Rule The Gods")
     skills = determineAvailSkills(loadSkills())
     fightButtonCoords = {'Clones': (991, 406), 'Jacky Lee': (1245, 400), 'Cthulhu': (1655, 405), 'Doppelganger': (845, 475), 'D. Evelope': (1245, 470), 'gods': (1640, 470)}
-
+    
+    if len(sys.argv) <= 1:
+        answer = getInput("Do you wish to update the number of uses per skill?  y/n \n")
+        if answer == 'y':
+            skills = setUses(skills)
+    
     while True:
         focus = getInput("Focus defeating 1) enemy or 2) using non-one cloned skills\n")
         if focus != '1' and focus != '2':
@@ -226,6 +240,13 @@ def useSkills(fightWhat):
     while True:
         if detectKeypress():
             break
+        if py.pixelMatchesColor(1151, 405, (4, 4, 4), tolerance=10):
+            skills[key].uses -= 1
+            if min(coolDowns) >= time.time():
+                sleep(min(coolDowns) - time.time() + 0.5)
+            skills, nextSkill = detectEndFight(skills, fightButtonCoords[fightWhat], nextSkill)
+        if win32gui.GetForegroundWindow() != idleGodshwdn:
+            win32gui.SetForegroundWindow(idleGodshwdn)
         for x in range(len(skillsToUse)):
             key = skillsToUse[x]
             if key in skills and skills[key].useMove():
@@ -242,11 +263,6 @@ def useSkills(fightWhat):
                     print("Key:", key, "not in skills")
                 elif skills[key].nextUse < time.time() and skills[key].avail:
                     print("Skill:", key, "off cooldown but not able to be used")
-        if py.pixelMatchesColor(1151, 405, (4, 4, 4), tolerance=10):
-            skills[key].uses -= 1
-            if min(coolDowns) >= time.time():
-                sleep(min(coolDowns) - time.time() + 0.5)
-            skills, nextSkill = detectEndFight(skills, fightButtonCoords[fightWhat], nextSkill)
     saveSkills(skills)
     atexit.unregister(saveSkills)
     return ''
@@ -347,3 +363,9 @@ def something():
                 print(py.center(loc))
             break
         conf -= 0.01
+
+socket = zmq.Context().socket(zmq.REP)
+socket.connect("tcp://127.0.0.1:5555")
+poller = zmq.Poller()
+poller.register(socket, zmq.POLLIN)
+            

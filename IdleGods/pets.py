@@ -43,3 +43,4 @@ def petHunger(currentHunger = 0):
             tim = x
 
     soundOffIn(tim / hungerSecond)
+    return ''

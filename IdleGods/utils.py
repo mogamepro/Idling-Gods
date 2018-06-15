@@ -10,7 +10,6 @@ import re
 import sys
 import time
 import importlib
-from mss import mss, ScreenShotError
 from win32com import client
 from threading import Timer
 from time import sleep
@@ -55,16 +54,10 @@ def takeAndReadImage(left, top, right, bottom):
     return readImage(takeImage(left, top, right, bottom))
 
 def takeImage(left = 0, top = 0, right = 1980, bottom = 1080):
-    try:
-        with mss() as sct:
-            sct_img = sct.grab((left, top, right, bottom))
-            return Image.frombytes('RGB', sct_img.size, sct_img.bgra, 'raw', 'BGRX')
-    except ScreenShotError:
-        print('mss failed. If this message repeats a lot, then ImageGrab still works (at least for awhile')
-        return ImageGrab.grab(bbox=(left, top, right, bottom))
+    return ImageGrab.grab(bbox=(left, top, right, bottom))
 
-def readImage(im):
-    text = pytesseract.image_to_string(im, config = '--psm 7')
+def readImage(im, config = 7):
+    text = pytesseract.image_to_string(im, config = '--psm ' + str(config))
     return text
 
 def formatNumber(num):
@@ -108,13 +101,17 @@ def sleepUntil(endTime):
     sleepTime = max(endTime - time.time(), 0)
     sleep(sleepTime)
 
-def getInput(msg):
+def getInput(msg, validInput = []):
     forWin = win32gui.GetForegroundWindow()
     shell = win32com.client.Dispatch("WScript.Shell")
     shell.SendKeys('%')
     win32gui.SetForegroundWindow(findWindowHandle())
 
-    inp = input(msg)
+    while True:
+        inp = input(msg)
+        if len(validInput) == 0 or inp in validInput:
+            break
+
     if forWin > 0:
         win32gui.SetForegroundWindow(forWin)
     return inp

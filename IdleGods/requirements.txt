@@ -1,0 +1,9 @@
+pywin32==223
+kivy.deps.sdl2==0.1.17
+PyScreeze==0.1.14
+PyAutoGUI==0.9.36
+pytesseract==0.2.2
+mss==3.2.1
+Pillow==5.1.0
+kivy==1.10.0
+win32gui==221.6
