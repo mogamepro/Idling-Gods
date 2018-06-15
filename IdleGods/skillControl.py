@@ -4,6 +4,7 @@ import sys
 import time
 import atexit
 import re
+import zmq
 from time import sleep
 from utils import clicky
 from utils import movey
@@ -52,16 +53,20 @@ def setUses(skills):
             x, y = skill.coords
             try:
                 movey(x, y)
-                uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
-                uses = re.sub(r"[ ]", "", uses)
+                uses = takeAndReadImage(x - 382, y - 36, x - 290, y - 16)
+                uses = re.sub(r"[ ‘.]", "", uses)
                 if uses != '':
                     skills[key].uses = int(uses)
             except ValueError:
-                movey(x, y)
-                uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
-                uses = re.sub(r"[ ]", "", uses)
-                if uses != '':
-                    skills[key].uses = int(uses)
+                try:
+                    movey(x, y)
+                    uses = takeAndReadImage(x - 382, y - 36, x - 310, y - 16)
+                    uses = re.sub(r"[ ]", "", uses)
+                    if uses != '':
+                        skills[key].uses = int(uses)
+                except ValueError:
+                    logging.debug(uses)
+                    raise
     clicky(660, 550)
     saveSkills(skills)
     return skills
@@ -358,3 +363,9 @@ def something():
                 print(py.center(loc))
             break
         conf -= 0.01
+
+socket = zmq.Context().socket(zmq.REP)
+socket.connect("tcp://127.0.0.1:5555")
+poller = zmq.Poller()
+poller.register(socket, zmq.POLLIN)
+            

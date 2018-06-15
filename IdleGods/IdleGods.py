@@ -1,18 +1,18 @@
 import os
-import zmq
 import datetime
 import sys
+import ctypes
+import logging
 import win32gui
 import win32con
-import ctypes
+import time
+import zmq
 import skillControl
 import pets
 import creations
 import afky
 import buildings
 import utils
-import logging
-import time
 import pyautogui as py
 from time import sleep
 
@@ -102,11 +102,6 @@ if __name__ == "__main__":
             import gui
             gui.MainWindow().run()
         else:
-            context = zmq.Context()
-            socket = context.socket(zmq.REP)
-            socket.bind("tcp://*:5555")
-            poller = zmq.Poller()
-            poller.register(socket, zmq.POLLIN)
             start = time.time()
             ctypes.windll.kernel32.SetConsoleTitleW("Idle Gods Controller X")
             args = [''] * len(sys.argv)
