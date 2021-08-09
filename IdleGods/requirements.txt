@@ -1,4 +1,4 @@
-pywin32==223
+pywin32==301
 kivy.deps.sdl2==0.1.17
 PyScreeze==0.1.14
 PyAutoGUI==0.9.36
