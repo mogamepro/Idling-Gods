@@ -4,6 +4,6 @@ PyScreeze==0.1.14
 PyAutoGUI==0.9.36
 pytesseract==0.2.2
 mss==3.2.1
-Pillow==9.0.1
+Pillow==10.0.1
 kivy==1.10.0
 win32gui==221.6
